@@ -3,6 +3,7 @@ name: Deploy Azure Static Web App
 on:
   push:
     branches:
+      - main
       - michalmar-karate-legends-game
   workflow_dispatch:
 
