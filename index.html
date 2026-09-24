@@ -190,7 +190,15 @@
     .hero-card p { color: var(--cp-text-muted); line-height: 1.55; }
     .progress-row { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; margin: 16px 0 7px; }
     .track { height: 8px; background: var(--cp-surface-soft); border-radius: 0.625rem; overflow: hidden; }
-    .track > span { display: block; height: 100%; background: var(--cp-accent); width: 0; transition: width 400ms ease; }
+    .track > span {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--cp-accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
     .section-heading {
       display: flex;
@@ -293,6 +301,40 @@
     .right .fighter-name { justify-content: flex-end; }
     .fighter-name strong { font-family: Georgia, "Times New Roman", serif; font-size: 20px; }
     .fighter-name span { color: var(--cp-text-muted); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .belt-badge {
+      --belt-color: #f4f1e8;
+      --belt-ink: #242424;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--cp-text);
+      font-weight: 800;
+    }
+    .belt-badge::before {
+      content: "";
+      width: 24px;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--belt-color);
+      border: 1px solid color-mix(in srgb, var(--belt-ink) 48%, transparent);
+      box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--belt-ink) 18%, transparent);
+    }
+    .fight-sp {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 7px 0 0;
+      color: var(--cp-text-muted);
+      font: 700 11px Consolas, "Courier New", Courier, monospace;
+    }
+    .right .fight-sp { justify-content: flex-end; }
+    .fight-sp strong { display: inline-block; color: var(--cp-text); }
+    .sp-pulse { animation: sp-pulse 560ms cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes sp-pulse {
+      0% { color: var(--cp-text); transform: scale(1); }
+      35% { color: var(--cp-success); transform: scale(1.16); }
+      100% { color: var(--cp-text); transform: scale(1); }
+    }
     .health-bar, .stamina-bar {
       height: 15px;
       background: var(--cp-surface-soft);
@@ -301,10 +343,17 @@
     }
     .health-bar { border-radius: 0.625rem; }
     .stamina-bar { height: 6px; margin-top: 5px; border-radius: 0.625rem; }
-    .health-bar span, .stamina-bar span { display: block; height: 100%; transition: width 160ms ease; }
+    .health-bar span, .stamina-bar span {
+      display: block;
+      width: 100%;
+      height: 100%;
+      transform: scaleX(1);
+      transform-origin: left;
+      transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
     .health-bar span { background: var(--cp-accent); }
     .stamina-bar span { background: var(--cp-warning); }
-    .right .health-bar span, .right .stamina-bar span { margin-left: auto; }
+    .right .health-bar span, .right .stamina-bar span { transform-origin: right; }
     .dragon-timer {
       width: 88px;
       height: 88px;
@@ -477,7 +526,7 @@
       </div>
       <div class="player-summary">
         <div class="summary-stat"><div class="summary-label">Record</div><div class="summary-value" id="recordValue">0–0</div></div>
-        <div class="summary-stat"><div class="summary-label">Belt</div><div class="summary-value" id="beltValue">White</div></div>
+        <div class="summary-stat"><div class="summary-label">Belt</div><div class="summary-value belt-badge" id="beltValue">White</div></div>
         <div class="summary-stat"><div class="summary-label">Skill points</div><div class="summary-value" id="spValue">0 SP</div></div>
         <button class="secondary" id="settingsButton">Settings</button>
       </div>
@@ -541,9 +590,10 @@
         <div class="game-shell">
           <div class="game-hud">
             <div class="fighter-hud">
-              <div class="fighter-name"><strong id="p1Name">Aiko</strong><span id="p1Belt">White Belt</span></div>
+              <div class="fighter-name"><strong id="p1Name">Aiko</strong><span class="belt-badge" id="p1Belt">White Belt</span></div>
               <div class="health-bar"><span id="p1Health" style="width:100%"></span></div>
               <div class="stamina-bar"><span id="p1Stamina" style="width:100%"></span></div>
+              <div class="fight-sp"><span>Skill points</span><strong id="fightSpValue">0 SP</strong><span id="fightRewardValue">· Win +25</span></div>
             </div>
             <div class="dragon-timer"><span id="timer">60</span></div>
             <div class="fighter-hud right">
@@ -602,13 +652,23 @@
       { name: "Black", sp: 2500, ability: "Dragon Fist · +10% damage and defense" },
       { name: "Red Dragon", sp: 5000, ability: "Dragon Aura · all belt powers active" }
     ];
+    const BELT_COLORS = [
+      { color: "#f4f1e8", ink: "#242424" },
+      { color: "#f2c94c", ink: "#5b4500" },
+      { color: "#ed8b32", ink: "#5a2600" },
+      { color: "#2e9b55", ink: "#0b3d20" },
+      { color: "#3478c9", ink: "#102f59" },
+      { color: "#754b35", ink: "#2e180f" },
+      { color: "#171717", ink: "#000000" },
+      { color: "#b91c1c", ink: "#5f0808" }
+    ];
     const MAPS = [
-      { name: "Sakura Dojo", cost: 0, special: "White Belt earns +5% XP", scene: "sakura", boss: "Student Kai" },
-      { name: "Bamboo Forest", cost: 100, special: "Yellow Belt moves 10% faster", scene: "bamboo", boss: "Ren" },
-      { name: "Jungle Ruins", cost: 250, special: "Green Belt gains speed and dodge", scene: "jungle", boss: "Guardian Taro" },
-      { name: "Frozen Summit", cost: 500, special: "Blue Belt regenerates stamina", scene: "frozen", boss: "Sensei Hiro" },
-      { name: "Volcano Temple", cost: 1000, special: "Brown Belt gains 20% defense", scene: "volcano", boss: "Monk Akio" },
-      { name: "Dragon Sanctuary", cost: 2500, special: "Black Belt Dragon Fist +20%", scene: "dragon", boss: "Dragon Emperor" }
+      { name: "Sakura Dojo", cost: 0, reward: 25, special: "White Belt earns +5% XP", scene: "sakura", boss: "Student Kai" },
+      { name: "Bamboo Forest", cost: 100, reward: 35, special: "Yellow Belt moves 10% faster", scene: "bamboo", boss: "Ren" },
+      { name: "Jungle Ruins", cost: 250, reward: 50, special: "Green Belt gains speed and dodge", scene: "jungle", boss: "Guardian Taro" },
+      { name: "Frozen Summit", cost: 500, reward: 75, special: "Blue Belt regenerates stamina", scene: "frozen", boss: "Sensei Hiro" },
+      { name: "Volcano Temple", cost: 1000, reward: 100, special: "Brown Belt gains 20% defense", scene: "volcano", boss: "Monk Akio" },
+      { name: "Dragon Sanctuary", cost: 2500, reward: 150, special: "Black Belt Dragon Fist +20%", scene: "dragon", boss: "Dragon Emperor" }
     ];
     const SPECIALS = [
       { name: "Straight Strike", damage: 15, cost: 28 },
@@ -670,12 +730,29 @@
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
+    function applyBeltStyle(element, index) {
+      const belt = BELT_COLORS[index];
+      element.style.setProperty("--belt-color", belt.color);
+      element.style.setProperty("--belt-ink", belt.ink);
+    }
+    function pulsePoints() {
+      ["spValue", "fightSpValue"].forEach(id => {
+        const element = document.getElementById(id);
+        element.classList.remove("sp-pulse");
+        void element.offsetWidth;
+        element.classList.add("sp-pulse");
+      });
+    }
     function updateProfile() {
       const index = beltIndex();
       const belt = BELTS[index];
       const next = BELTS[Math.min(index + 1, BELTS.length - 1)];
       document.getElementById("spValue").textContent = `${state.sp} SP`;
       document.getElementById("beltValue").textContent = belt.name;
+      document.getElementById("fightSpValue").textContent = `${state.sp} SP`;
+      document.getElementById("p1Belt").textContent = `${belt.name} Belt`;
+      applyBeltStyle(document.getElementById("beltValue"), index);
+      applyBeltStyle(document.getElementById("p1Belt"), index);
       document.getElementById("recordValue").textContent = `${state.wins}–${state.losses}`;
       document.getElementById("pathBelt").textContent = `${belt.name} Belt`;
       document.getElementById("pathAbility").textContent = belt.ability;
@@ -683,12 +760,12 @@
       if (index === BELTS.length - 1) {
         document.getElementById("nextBeltLabel").textContent = "Legend status";
         document.getElementById("nextBeltSp").textContent = "Complete";
-        document.getElementById("beltProgress").style.width = "100%";
+        document.getElementById("beltProgress").style.transform = "scaleX(1)";
       } else {
         const progress = ((state.sp - belt.sp) / (next.sp - belt.sp)) * 100;
         document.getElementById("nextBeltLabel").textContent = `Next: ${next.name} Belt`;
         document.getElementById("nextBeltSp").textContent = `${state.sp} / ${next.sp} SP`;
-        document.getElementById("beltProgress").style.width = `${Math.max(0, Math.min(100, progress))}%`;
+        document.getElementById("beltProgress").style.transform = `scaleX(${Math.max(0, Math.min(1, progress / 100))})`;
       }
       renderMaps();
     }
@@ -699,7 +776,7 @@
         return `<button class="map-card ${selectedMap === index ? "selected" : ""}" data-map="${index}" ${locked ? "disabled" : ""}>
           <span class="map-index">GROUND ${String(index + 1).padStart(2, "0")}</span>
           <span class="map-cost">${locked ? `🔒 ${map.cost} SP` : map.cost ? `${map.cost} SP` : "FREE"}</span>
-          <h3>${map.name}</h3><p>${map.special}</p>
+          <h3>${map.name}</h3><p>${map.special}<br><strong>Victory reward: ${map.reward} SP</strong></p>
         </button>`;
       }).join("");
       grid.querySelectorAll(".map-card:not(:disabled)").forEach(card => card.addEventListener("click", () => {
@@ -762,6 +839,10 @@
         this.last = 0;
         this.aiClock = 0;
         this.effects = [];
+        this.particles = [];
+        this.combatText = [];
+        this.hitStop = 0;
+        this.cameraShake = 0;
         this.survivalRound = 1;
         this.resize = this.resize.bind(this);
         this.loop = this.loop.bind(this);
@@ -818,6 +899,9 @@
         this.started = false;
         this.updateHud();
         document.getElementById("p1Belt").textContent = `${BELTS[bIndex].name} Belt`;
+        applyBeltStyle(document.getElementById("p1Belt"), bIndex);
+        document.getElementById("fightSpValue").textContent = `${state.sp} SP`;
+        document.getElementById("fightRewardValue").textContent = `· Win +${map.reward}`;
         document.getElementById("p2Name").textContent = this.p2.name;
         document.getElementById("p2Belt").textContent = local ? `${BELTS[bIndex].name} Belt` : aiLevel().name;
       }
@@ -910,13 +994,14 @@
         if (active && distance < attack.reach + attacker.width / 2 && vertical < 95) {
           attack.hit = true;
           let damage = attack.damage;
+          const blocked = defender.blocking;
           const bIndex = beltIndex();
           if (attacker === this.p1 && bIndex >= 6) damage *= 1.1;
           if (attacker === this.p1 && bIndex === 2 && attacker.combo > 0) damage *= 1.1;
           if (attacker === this.p1 && selectedMap === 2 && bIndex === 3 && attack.type === "special") damage *= 1.15;
           if (attacker === this.p1 && selectedMap === 5 && bIndex >= 6 && attack.type === "special") damage *= 1.2;
           if (attacker.ai) damage *= aiLevel().damage;
-          if (defender.blocking) {
+          if (blocked) {
             damage *= 0.25;
             defender.stamina = Math.max(0, defender.stamina - 18);
             if (!defender.stamina) defender.blocking = false;
@@ -924,15 +1009,46 @@
           if (defender === this.p1 && bIndex >= 5) damage *= bIndex >= 6 ? 0.9 : 0.85;
           if (defender === this.p1 && selectedMap === 4 && bIndex === 5) damage *= 0.8;
           defender.health = Math.max(0, defender.health - damage);
-          defender.hitFlash = 0.14;
-          defender.vx = attacker.facing * (defender.blocking ? 90 : 250);
+          defender.hitFlash = blocked ? 0.08 : 0.18;
+          defender.vx = attacker.facing * (blocked ? 90 : 250);
           attacker.combo = performance.now() - attacker.lastHit < 900 ? attacker.combo + 1 : 1;
           attacker.lastHit = performance.now();
-          this.effects.push({ x: defender.x + defender.width / 2, y: defender.y + 35, life: 0.3, special: attack.type === "special" });
+          const impactX = defender.x + defender.width / 2 - attacker.facing * 8;
+          const impactY = defender.y + 40;
+          const effectType = blocked ? "block" : attack.type === "special" ? "special" : "hit";
+          this.effects.push({ x: impactX, y: impactY, life: 0.36, maxLife: 0.36, type: effectType, direction: attacker.facing });
+          this.combatText.push({
+            x: impactX,
+            y: impactY - 20,
+            life: 0.52,
+            maxLife: 0.52,
+            text: blocked ? "BLOCK" : `-${Math.round(damage)}`,
+            type: effectType
+          });
+          const particleCount = blocked ? 9 : attack.type === "special" ? 18 : 12;
+          for (let i = 0; i < particleCount; i++) {
+            const angle = (Math.PI * 2 * i / particleCount) + (Math.random() - 0.5) * 0.35;
+            const speed = (blocked ? 90 : 130) + Math.random() * (attack.type === "special" ? 220 : 120);
+            this.particles.push({
+              x: impactX,
+              y: impactY,
+              vx: Math.cos(angle) * speed + attacker.facing * 55,
+              vy: Math.sin(angle) * speed,
+              life: 0.24 + Math.random() * 0.22,
+              maxLife: 0.46,
+              type: effectType
+            });
+          }
+          this.hitStop = blocked ? 0.035 : attack.type === "special" ? 0.075 : 0.05;
+          this.cameraShake = blocked ? 4 : attack.type === "special" ? 11 : 7;
         }
       }
       update(dt) {
         if (!this.started) return;
+        if (this.hitStop > 0) {
+          this.hitStop -= dt;
+          return;
+        }
         this.time = Math.max(0, this.time - dt);
         this.inputFor(this.p1, state.keys.p1, dt, 0);
         if (this.p2.ai) this.aiInput(dt); else this.inputFor(this.p2, state.keys.p2, dt, 1);
@@ -940,17 +1056,33 @@
         this.applyPhysics(this.p2, dt);
         this.resolveAttack(this.p1, this.p2);
         this.resolveAttack(this.p2, this.p1);
+        this.cameraShake = Math.max(0, this.cameraShake - dt * 34);
         this.effects.forEach(effect => effect.life -= dt);
         this.effects = this.effects.filter(effect => effect.life > 0);
+        this.particles.forEach(particle => {
+          particle.life -= dt;
+          particle.x += particle.vx * dt;
+          particle.y += particle.vy * dt;
+          particle.vx *= 0.9;
+          particle.vy = particle.vy * 0.9 + 420 * dt;
+        });
+        this.particles = this.particles.filter(particle => particle.life > 0);
+        this.combatText.forEach(text => {
+          text.life -= dt;
+          text.y -= 46 * dt;
+        });
+        this.combatText = this.combatText.filter(text => text.life > 0);
         this.updateHud();
         if (this.p1.health <= 0 || this.p2.health <= 0 || this.time <= 0) this.finish();
       }
       updateHud() {
-        const setWidth = (id, value) => document.getElementById(id).style.width = `${Math.max(0, value)}%`;
-        setWidth("p1Health", this.p1.health / this.p1.maxHealth * 100);
-        setWidth("p2Health", this.p2.health / this.p2.maxHealth * 100);
-        setWidth("p1Stamina", this.p1.stamina);
-        setWidth("p2Stamina", this.p2.stamina);
+        const setScale = (id, value) => {
+          document.getElementById(id).style.transform = `scaleX(${Math.max(0, Math.min(1, value / 100))})`;
+        };
+        setScale("p1Health", this.p1.health / this.p1.maxHealth * 100);
+        setScale("p2Health", this.p2.health / this.p2.maxHealth * 100);
+        setScale("p1Stamina", this.p1.stamina);
+        setScale("p2Stamina", this.p2.stamina);
         document.getElementById("timer").textContent = Math.ceil(this.time);
       }
       finish() {
@@ -963,25 +1095,30 @@
           state.survivalBest = Math.max(state.survivalBest, this.survivalRound - 1);
         }
         if (selectedMode !== "local") {
+          const previousBelt = beltIndex();
           if (won) state.wins++; else state.losses++;
-          let reward = won ? 25 : 0;
-          if (won && this.p1.health >= 99.5) reward = 50;
-          if (won && selectedMap === 5) { reward = 150; state.emperorWins++; }
+          let reward = won ? MAPS[selectedMap].reward : 0;
+          if (won && this.p1.health >= 99.5) reward *= 2;
+          if (won && selectedMap === 5) state.emperorWins++;
           if (won && selectedMode === "survival") reward += (this.survivalRound - 1) * 5;
           state.sp += reward;
           saveState();
-          this.showResult(won, reward);
+          updateProfile();
+          pulsePoints();
+          this.showResult(won, reward, beltIndex() > previousBelt);
         } else {
           this.showResult(won, 0);
         }
       }
-      showResult(won, reward) {
+      showResult(won, reward, promoted = false) {
         document.getElementById("resultEyebrow").textContent = won ? "Victory" : "Defeat";
         document.getElementById("resultTitle").textContent = won ? "Honor is yours" : "Rise and train again";
-        document.getElementById("resultCopy").textContent = selectedMode === "local"
+        document.getElementById("resultCopy").textContent = promoted
+          ? `Promotion earned: ${BELTS[beltIndex()].name} Belt.`
+          : selectedMode === "local"
           ? `${won ? "Player 1" : "Player 2"} claims the dojo.`
           : won ? `${this.p2.name} has been defeated.` : `${this.p2.name} read your technique.`;
-        document.getElementById("resultReward").textContent = reward ? `+${reward} SP` : (selectedMode === "local" ? "DOJO DUEL" : "+0 SP");
+        document.getElementById("resultReward").textContent = reward ? `+${reward} SP · ${state.sp} SP TOTAL` : (selectedMode === "local" ? "DOJO DUEL" : "+0 SP");
         document.getElementById("rematchButton").textContent = selectedMode === "survival" && won ? `Continue · Round ${this.survivalRound}` : "Fight again";
         document.getElementById("resultModal").classList.remove("hidden");
       }
@@ -1072,11 +1209,11 @@
         c.moveTo(0, 71); c.lineTo(kick ? 58 : 24, kick ? 66 : 108);
         c.moveTo(0, 71); c.lineTo(-24, 108);
         c.stroke();
-        c.strokeStyle = this.theme("surface");
-        c.lineWidth = 6;
+        c.strokeStyle = player === 1 ? BELT_COLORS[beltIndex()].ink : this.theme("surface");
+        c.lineWidth = 7;
         c.beginPath(); c.moveTo(-18, 67); c.lineTo(18, 67); c.stroke();
-        c.strokeStyle = this.theme("warning");
-        c.lineWidth = 3;
+        c.strokeStyle = player === 1 ? BELT_COLORS[beltIndex()].color : this.theme("warning");
+        c.lineWidth = 4;
         c.beginPath(); c.moveTo(-18, 67); c.lineTo(18, 67); c.stroke();
         if (f.blocking) {
           c.strokeStyle = this.theme("warning"); c.lineWidth = 5;
@@ -1095,16 +1232,54 @@
       draw() {
         const c = this.ctx;
         c.clearRect(0, 0, this.width, this.height);
+        c.save();
+        if (this.cameraShake > 0) {
+          c.translate((Math.random() - 0.5) * this.cameraShake, (Math.random() - 0.5) * this.cameraShake);
+        }
         this.drawBackground();
         this.drawFighter(this.p1, 1);
         this.drawFighter(this.p2, 2);
         this.effects.forEach(effect => {
-          c.strokeStyle = effect.special ? this.theme("accent") : this.theme("warning");
-          c.lineWidth = effect.special ? 6 : 3;
-          c.globalAlpha = effect.life / 0.3;
-          c.beginPath(); c.arc(effect.x, effect.y, (0.3 - effect.life) * 130, 0, Math.PI * 2); c.stroke();
+          const progress = 1 - effect.life / effect.maxLife;
+          c.strokeStyle = effect.type === "block" ? this.theme("link") : effect.type === "special" ? this.theme("accent") : this.theme("warning");
+          c.lineWidth = effect.type === "special" ? 7 : 4;
+          c.globalAlpha = effect.life / effect.maxLife;
+          c.beginPath();
+          if (effect.type === "block") {
+            c.arc(effect.x, effect.y, 22 + progress * 38, -1.45, 1.45);
+          } else {
+            c.arc(effect.x, effect.y, 8 + progress * 68, 0, Math.PI * 2);
+          }
+          c.stroke();
+          if (effect.type !== "block") {
+            c.lineWidth = 3;
+            for (let i = 0; i < 4; i++) {
+              const angle = i * Math.PI / 2 + progress;
+              c.beginPath();
+              c.moveTo(effect.x + Math.cos(angle) * 8, effect.y + Math.sin(angle) * 8);
+              c.lineTo(effect.x + Math.cos(angle) * (42 + progress * 30), effect.y + Math.sin(angle) * (42 + progress * 30));
+              c.stroke();
+            }
+          }
           c.globalAlpha = 1;
         });
+        this.particles.forEach(particle => {
+          c.fillStyle = particle.type === "block" ? this.theme("link") : particle.type === "special" ? this.theme("accent") : this.theme("warning");
+          c.globalAlpha = Math.max(0, particle.life / particle.maxLife);
+          c.beginPath();
+          c.arc(particle.x, particle.y, particle.type === "special" ? 4 : 2.5, 0, Math.PI * 2);
+          c.fill();
+        });
+        c.globalAlpha = 1;
+        this.combatText.forEach(text => {
+          c.globalAlpha = Math.min(1, text.life / (text.maxLife * 0.35));
+          c.fillStyle = text.type === "block" ? this.theme("link") : text.type === "special" ? this.theme("accent") : this.theme("warning");
+          c.textAlign = "center";
+          c.font = text.type === "block" ? "900 16px Georgia" : "900 18px Consolas";
+          c.fillText(text.text, text.x, text.y);
+        });
+        c.globalAlpha = 1;
+        c.restore();
         c.fillStyle = this.theme("text-muted");
         c.textAlign = "left"; c.font = "700 11px Consolas";
         c.fillText(MAPS[selectedMap].name.toUpperCase(), 18, 24);

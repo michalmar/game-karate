@@ -24,6 +24,8 @@ publish the root directory directly because the game has no build step.
 - Local two-player keyboard battles
 - Endless survival mode
 - Six unlockable arenas
+- Arena-scaled rewards from 25 SP in Sakura Dojo to 150 SP in Dragon Sanctuary
 - Persistent Skill Points, belts, record, and key bindings
-- Belt-specific combat and map bonuses
+- Belt-specific colors, combat abilities, and map bonuses
+- Hit-stop, impact particles, damage callouts, and distinct block feedback
 - Keyboard, touch, and standard Xbox/PlayStation Gamepad API controls
